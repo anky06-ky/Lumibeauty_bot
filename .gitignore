@@ -1,0 +1,22 @@
+# Environment variables - DO NOT COMMIT!
+.env
+firebase-credentials.json
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# VS Code settings
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution
+dist/
+build/
+*.egg-info/
