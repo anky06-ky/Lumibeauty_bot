@@ -1,11 +1,8 @@
 from telegram import Update
-<<<<<<< HEAD
-=======
 from telegram.error import TelegramError
 import json
 import os
 from pathlib import Path
->>>>>>> 4f89279 (Nâng cấp giao diện và hoàn thiện chức năng cuối cùng)
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
@@ -203,9 +200,7 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ──────────────────────────────────────────
 # /xem (Xem ảnh sản phẩm)
 # ──────────────────────────────────────────
-<<<<<<< HEAD
-def get_mock_image(product_name: str) -> str:
-=======
+
 def get_product_image(product: dict) -> str:
     """Ưu tiên /img (map tên file rút gọn), rồi /images đúng tên sản phẩm, URL, stock."""
     product_name = product["name"]
@@ -235,7 +230,6 @@ def get_product_image(product: dict) -> str:
         return url
 
     # 5. Link Unsplash theo từ khóa
->>>>>>> 4f89279 (Nâng cấp giao diện và hoàn thiện chức năng cuối cùng)
     name_lower = product_name.lower()
     if "sữa rửa mặt" in name_lower or "cleanser" in name_lower or "tẩy trang" in name_lower:
         return "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=600&q=80"
@@ -312,7 +306,7 @@ async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     keyword = " ".join(context.args)
-<<<<<<< HEAD
+
     results = products.search_products(keyword)
 
     if not results:
@@ -321,7 +315,23 @@ async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Lấy kết quả đầu tiên tốt nhất để show ảnh bự
     p = results[0]
-    img_url = get_mock_image(p['name'])
+    
+    # Ưu tiên lấy ảnh từ thuộc tính 'image' trỏ vào thư mục img/ của team
+    img_filename = p.get('image')
+    img_src = None
+    if img_filename:
+        # Construct the path relative to the current file's directory
+        current_dir = os.path.dirname(__file__)
+        # Assuming 'img' directory is at the same level as 'bot' directory
+        # So, go up one level from 'handlers.py' (which is in 'bot') to the project root, then into 'img'
+        project_root = os.path.dirname(current_dir)
+        possible_path = os.path.join(project_root, "img", img_filename)
+        if os.path.exists(possible_path):
+            img_src = possible_path
+
+    # Nếu không có hoặc file bị thiếu, fallback về bộ máy mockups cũ
+    if not img_src:
+        img_src = get_mock_image(p['name'])
     
     caption = (
         f"📸 *Ảnh minh họa sản phẩm:*\n"
@@ -333,10 +343,7 @@ async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     
     await update.message.reply_photo(photo=img_url, caption=caption, parse_mode="Markdown")
-=======
-    if not await reply_product_photo_by_keyword(update, keyword):
-        await update.message.reply_text(f"😔 Không tìm thấy sản phẩm nào với từ khóa '{keyword}'.")
->>>>>>> 4f89279 (Nâng cấp giao diện và hoàn thiện chức năng cuối cùng)
+
 
 
 # ──────────────────────────────────────────
