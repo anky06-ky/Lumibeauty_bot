@@ -2,6 +2,9 @@
 .env
 firebase-credentials.json
 
+# Bản sao cũ (đã bỏ code; nếu còn sót __pycache__ do file .pyc bị khóa — đóng IDE/antivirus rồi xóa tay thư mục)
+Lumibeauty_bot-main/
+
 # Python virtual environment
 .venv/
 venv/

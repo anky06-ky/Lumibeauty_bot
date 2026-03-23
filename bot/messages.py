@@ -27,6 +27,17 @@ Hãy dùng /skintype để chọn loại da trước nhé.
 
 NO_PRODUCTS_MSG = "😔 Không tìm thấy sản phẩm nào phù hợp."
 
+# Trả lời khi chat tự nhiên / Gemini lỗi — giọng điệu thống nhất, gợi ý lệnh (Telegram tự làm /order, /products thành nút)
+AI_ERROR_BUSY_MSG = (
+    "Xin lỗi, hiện tại Trí tuệ AI đang bận hoặc quá tải. "
+    "Bạn vui lòng gõ lệnh lập trình sẵn (VD: /order, /products) hoặc thử chat lại sau một lát nhé! 🌸"
+)
+
+AI_ERROR_NO_KEY_MSG = (
+    "Xin lỗi, tính năng AI chưa được cấu hình trên máy chủ. "
+    "Bạn vui lòng dùng lệnh có sẵn (VD: /order, /products, /skintype, /search) hoặc liên hệ admin bật GEMINI_API_KEY nhé! 🌸"
+)
+
 def format_product(product: dict, index: int) -> str:
     skintype_str = ", ".join(product.get("skintype", []))
     return (

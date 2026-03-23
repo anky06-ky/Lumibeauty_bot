@@ -1,4 +1,11 @@
 from telegram import Update
+<<<<<<< HEAD
+=======
+from telegram.error import TelegramError
+import json
+import os
+from pathlib import Path
+>>>>>>> 4f89279 (Nâng cấp giao diện và hoàn thiện chức năng cuối cùng)
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
@@ -15,6 +22,29 @@ from bot.messages import (
 )
 from database import users, products, orders
 from bot.ai import get_ai_response
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_IMAGES_DIR = _PROJECT_ROOT / "images"
+_IMG_FOLDER_MAP_PATH = _PROJECT_ROOT / "data" / "img_folder_map.json"
+_img_folder_map: dict[str, str] | None = None
+
+
+def _get_img_folder_map() -> dict[str, str]:
+    global _img_folder_map
+    if _img_folder_map is None:
+        if _IMG_FOLDER_MAP_PATH.is_file():
+            _img_folder_map = json.loads(_IMG_FOLDER_MAP_PATH.read_text(encoding="utf-8"))
+        else:
+            _img_folder_map = {}
+    return _img_folder_map
+
+
+def _img_folder_file_for(product_name: str) -> Path | None:
+    rel = _get_img_folder_map().get(product_name)
+    if not rel:
+        return None
+    path = _PROJECT_ROOT / rel.replace("/", os.sep)
+    return path if path.is_file() else None
 
 # States cho ConversationHandler đặt hàng
 CHOOSE_PRODUCT, ENTER_QUANTITY, ENTER_NAME, ENTER_ADDRESS, CONFIRM_ORDER = range(5)
@@ -173,7 +203,39 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ──────────────────────────────────────────
 # /xem (Xem ảnh sản phẩm)
 # ──────────────────────────────────────────
+<<<<<<< HEAD
 def get_mock_image(product_name: str) -> str:
+=======
+def get_product_image(product: dict) -> str:
+    """Ưu tiên /img (map tên file rút gọn), rồi /images đúng tên sản phẩm, URL, stock."""
+    product_name = product["name"]
+
+    # Bỏ các kí tự đặc biệt trong tên sản phẩm để tránh lỗi khi đọc file
+    safe_name = "".join(c for c in product_name if c not in r'\/:*?"<>|')
+
+    # 1. Ảnh trong thư mục img/ (tên file tự đặt — map trong data/img_folder_map.json)
+    img_mapped = _img_folder_file_for(product_name)
+    if img_mapped is not None:
+        return str(img_mapped)
+
+    # 2. Ảnh trong images/ trùng tên sản phẩm (VD: Sữa rửa mặt CeraVe.jpg)
+    for ext in (".jpg", ".png", ".jpeg"):
+        file_path = _IMAGES_DIR / f"{safe_name}{ext}"
+        if file_path.is_file():
+            return str(file_path)
+
+    # 3. Ảnh mặc định trong thư mục images/
+    default_path = _IMAGES_DIR / "default.jpg"
+    if default_path.is_file():
+        return str(default_path)
+
+    # 4. URL từ Cosmos / seed (placeholder hoặc link CDN của bạn)
+    url = (product.get("image_url") or "").strip()
+    if url:
+        return url
+
+    # 5. Link Unsplash theo từ khóa
+>>>>>>> 4f89279 (Nâng cấp giao diện và hoàn thiện chức năng cuối cùng)
     name_lower = product_name.lower()
     if "sữa rửa mặt" in name_lower or "cleanser" in name_lower or "tẩy trang" in name_lower:
         return "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=600&q=80"
@@ -183,10 +245,63 @@ def get_mock_image(product_name: str) -> str:
         return "https://images.unsplash.com/photo-1629198688000-71f23e745b6e?w=600&q=80"
     elif "chống nắng" in name_lower:
         return "https://images.unsplash.com/photo-1556228720-192a6af4e865?w=600&q=80"
-    elif "mặt nạ" in name_lower or "tế bào chết" in name_lower:
+    elif "mặt nạ" in name_lower or "tế bào chết" in name_lower or "da chết" in name_lower:
         return "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600&q=80"
-    else: # Kem dưỡng
+    elif "dưỡng mắt" in name_lower or "kem mắt" in name_lower:
+        return "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&q=80"
+    elif "nước tẩy trang" in name_lower or "dầu tẩy trang" in name_lower or "micellar" in name_lower:
+        return "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=600&q=80"
+    elif "chấm mụn" in name_lower:
+        return "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=600&q=80"
+    else:  # Kem dưỡng & còn lại
         return "https://images.unsplash.com/photo-1611004128038-1616f73dbbe9?w=600&q=80"
+
+
+async def _reply_product_photo_for_product(update: Update, p: dict) -> None:
+    """Gửi ảnh + caption cho một document sản phẩm (không parse_mode — tránh lỗi entity Telegram)."""
+    img_src = get_product_image(p)
+    sk = ", ".join(p.get("skintype", []))
+    caption = (
+        f"📸 Ảnh minh họa sản phẩm\n"
+        f"{p['name']}\n"
+        f"💰 Giá: {p['price']:,} VNĐ\n"
+        f"🧴 Loại da: {sk}\n"
+        f"📝 {p.get('description', '')}\n\n"
+        f"👉 Dùng lệnh /order để chốt đơn nhé!"
+    )
+    if len(caption) > 1024:
+        caption = caption[:1021] + "..."
+
+    try:
+        if img_src.startswith("http"):
+            await update.message.reply_photo(photo=img_src, caption=caption)
+        else:
+            with open(img_src, "rb") as photo:
+                await update.message.reply_photo(photo=photo, caption=caption)
+    except TelegramError:
+        if img_src.startswith("http"):
+            await update.message.reply_text(
+                "Không gửi được ảnh (Telegram không tải được link). "
+                f"Bạn mở thử trình duyệt:\n{img_src}\n\n{caption}"
+            )
+        else:
+            await update.message.reply_text(
+                f"Không đọc được file ảnh: {img_src}\n\n{caption}"
+            )
+    except OSError:
+        await update.message.reply_text(
+            f"Không mở được file ảnh: {img_src}\n\n{caption}"
+        )
+
+
+async def reply_product_photo_by_keyword(update: Update, keyword: str) -> bool:
+    """Tìm SP theo từ khóa, gửi ảnh. Trả False nếu không có kết quả."""
+    results = products.search_products(keyword.strip())
+    if not results:
+        return False
+    await _reply_product_photo_for_product(update, results[0])
+    return True
+
 
 async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
@@ -197,6 +312,7 @@ async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     keyword = " ".join(context.args)
+<<<<<<< HEAD
     results = products.search_products(keyword)
 
     if not results:
@@ -217,6 +333,10 @@ async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     
     await update.message.reply_photo(photo=img_url, caption=caption, parse_mode="Markdown")
+=======
+    if not await reply_product_photo_by_keyword(update, keyword):
+        await update.message.reply_text(f"😔 Không tìm thấy sản phẩm nào với từ khóa '{keyword}'.")
+>>>>>>> 4f89279 (Nâng cấp giao diện và hoàn thiện chức năng cuối cùng)
 
 
 # ──────────────────────────────────────────
@@ -231,14 +351,44 @@ async def order_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return CHOOSE_PRODUCT
 
 async def order_get_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    product_name = update.message.text.strip()
-    product = products.get_product_by_name(product_name)
+    text = (update.message.text or "").strip()
+    # Đang trong /order mà tin nhắn /xem … lọt vào đây (vd. bản cũ chưa group=-1): gửi ảnh, giữ bước chọn SP
+    if text.lower().startswith("/xem"):
+        kw = text[4:].strip()
+        if not kw:
+            await update.message.reply_text(
+                "Gõ /xem <tên sản phẩm> để xem ảnh, hoặc chỉ gõ tên sản phẩm để đặt. /cancel để hủy."
+            )
+            return CHOOSE_PRODUCT
+        if not await reply_product_photo_by_keyword(update, kw):
+            await update.message.reply_text(f"Không tìm thấy sản phẩm với '{kw}'.")
+        else:
+            await update.message.reply_text(
+                "Bạn vẫn đang đặt hàng — nhập tên sản phẩm (như trong danh sách) để tiếp tục, hoặc /cancel."
+            )
+        return CHOOSE_PRODUCT
 
-    if not product:
+    if text.startswith("/"):
         await update.message.reply_text(
-            "❌ Không tìm thấy sản phẩm này. Vui lòng nhập lại hoặc /cancel để hủy."
+            "Đang đặt hàng — chỉ nhập tên sản phẩm (không gõ lệnh khác), hoặc /cancel."
         )
         return CHOOSE_PRODUCT
+
+    product_name = text
+    if not product_name:
+        await update.message.reply_text("Vui lòng nhập tên sản phẩm hoặc /cancel.")
+        return CHOOSE_PRODUCT
+
+    product = products.get_product_by_name(product_name)
+    if not product:
+        found = products.search_products(product_name)
+        if found:
+            product = found[0]
+        else:
+            await update.message.reply_text(
+                "❌ Không tìm thấy sản phẩm này. Vui lòng nhập lại hoặc /cancel để hủy."
+            )
+            return CHOOSE_PRODUCT
 
     context.user_data["order_product"] = product
     await update.message.reply_text(

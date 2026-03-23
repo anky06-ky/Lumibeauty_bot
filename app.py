@@ -15,15 +15,15 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
-    # Đăng ký handlers
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("skintype", skintype))
-    app.add_handler(CommandHandler("recommend", recommend))
-    app.add_handler(CommandHandler("products", product_list))
-    app.add_handler(CommandHandler("search", search))
-    app.add_handler(CommandHandler("xem", view_image))
-    app.add_handler(CommandHandler("myorder", my_orders))
-    app.add_handler(CommandHandler("ask", ask_ai))
+    # Lệnh ở group=-1 để luôn chạy trước ConversationHandler (vd: đang /order vẫn dùng được /xem)
+    app.add_handler(CommandHandler("start", start), group=-1)
+    app.add_handler(CommandHandler("skintype", skintype), group=-1)
+    app.add_handler(CommandHandler("recommend", recommend), group=-1)
+    app.add_handler(CommandHandler("products", product_list), group=-1)
+    app.add_handler(CommandHandler("search", search), group=-1)
+    app.add_handler(CommandHandler("xem", view_image), group=-1)
+    app.add_handler(CommandHandler("myorder", my_orders), group=-1)
+    app.add_handler(CommandHandler("ask", ask_ai), group=-1)
 
     # ConversationHandler cho /order
     app.add_handler(get_order_conversation_handler())

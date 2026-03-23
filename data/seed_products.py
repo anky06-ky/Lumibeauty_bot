@@ -39,6 +39,13 @@ PRODUCTS = [
     {"id": str(uuid.uuid4()), "name": "Toner cấp ẩm Hada Labo Gokujyun",          "price": 280000,  "skintype": ["da khô", "da hỗn hợp"],             "description": "Cấp nước tức thì cho da khô ráp, giúp da ngậm nước căng bóng.", "image": "toner_hadalabo.jpg"},
 ]
 
+# Ảnh minh họa cho /xem (Telegram tải URL). Có thể thay bằng URL thật hoặc đặt file local trong /images.
+for idx, prod in enumerate(PRODUCTS, 1):
+    prod.setdefault(
+        "image_url",
+        f"https://picsum.photos/seed/lumibeauty-{idx:03d}/600/600",
+    )
+
 def seed():
     container = get_container("products", "/id")
     for p in PRODUCTS:
