@@ -4,14 +4,17 @@ WELCOME_MSG = """
 Tôi là trợ lý tư vấn mỹ phẩm của bạn.
 Tôi sẽ giúp bạn tìm sản phẩm phù hợp nhất với làn da của mình! ✨
 
-📋 *Các lệnh có thể dùng:*
-/skintype – Xác định loại da
-/recommend – Gợi ý sản phẩm cho bạn
-/products – Xem danh sách sản phẩm
-/search – Tìm kiếm sản phẩm
-/ask <câu hỏi> – 🤖 TƯ VẤN AI: Chat với Gemini AI để được tư vấn da chuyên sâu 
-/order – Đặt hàng
-/myorder – Xem đơn hàng của bạn
+*📋 Các lệnh có thể dùng:*
+▫️ /skintype – Xác định loại da
+▫️ /recommend – Gợi ý sản phẩm phù hợp
+▫️ /products – Duyệt sản phẩm theo danh mục
+▫️ /search – Tìm kiếm sản phẩm
+▫️ /xem – Xem ảnh sản phẩm
+▫️ /order – Đặt hàng
+▫️ /myorder – Xem đơn hàng của bạn
+▫️ /ask – 🤖 Tư vấn AI chuyên sâu
+
+💬 Hoặc cứ nhắn tin tự nhiên, tôi sẽ tư vấn ngay!
 """
 
 SKINTYPE_MSG = """
