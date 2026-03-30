@@ -28,3 +28,13 @@ def update_skintype(telegram_id: int, skintype: str):
 def get_skintype(telegram_id: int) -> str | None:
     user = get_user(telegram_id)
     return user.get("skintype") if user else None
+
+def get_all_users() -> list:
+    return list(_c().read_all_items())
+
+def delete_user(telegram_id: int):
+    try:
+        _c().delete_item(item=str(telegram_id), partition_key=str(telegram_id))
+        return True
+    except Exception:
+        return False

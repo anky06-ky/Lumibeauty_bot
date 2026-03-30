@@ -1,25 +1,42 @@
-# Environment variables - DO NOT COMMIT!
+# ── Secrets & Credentials ─────────────────────────────────
 .env
 firebase-credentials.json
 
-# Bản sao cũ (đã bỏ code; nếu còn sót __pycache__ do file .pyc bị khóa — đóng IDE/antivirus rồi xóa tay thư mục)
-Lumibeauty_bot-main/
-
-# Python virtual environment
-.venv/
-venv/
-env/
-
-# VS Code settings
-.vscode/
-
-# Python cache
+# ── Python Cache & Build ───────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Distribution
-dist/
+*.pyw
+.Python
 build/
+dist/
 *.egg-info/
+*.egg
+
+# ── Virtual Environments ───────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Logs & Temporary Debug Files ──────────────────────────
+*.log
+log.txt
+ai_error.txt
+status.txt
+origin.txt
+diff.txt
+
+# ── Old / Duplicate Source Code ────────────────────────────
+Lumibeauty_bot-main/
+
+# ── IDE & Editor ───────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ── OS Files ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db

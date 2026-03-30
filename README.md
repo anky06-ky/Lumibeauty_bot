@@ -1,144 +1,189 @@
-# 🌸 Lumi Beauty Chatbot
+# 🌸 Lumi Beauty – Cosmetic Chatbot & Admin Dashboard
 
-Telegram Chatbot tư vấn mỹ phẩm thông minh, triển khai hoàn toàn trên **Microsoft Azure**.
-
-> Đồ án môn "Nền tảng phát triển phần mềm" – Đại học Văn Lang (VLU)
+> **Đồ án môn Điện toán đám mây** — Telegram Chatbot tư vấn mỹ phẩm tích hợp AI (Gemini), quản lý đơn hàng và Admin Dashboard trực quan.
 
 ---
 
-## ✨ Tính năng
+## 📋 Tính năng chính
 
-| Lệnh | Chức năng |
-|------|-----------|
-| `/start` | Chào mừng & giới thiệu bot |
-| `/skintype` | Xác định loại da (nút chọn trực quan) |
-| `/recommend` | Gợi ý sản phẩm theo loại da |
-| `/products` | Xem toàn bộ danh sách sản phẩm |
+### 🤖 Telegram Bot
+| Lệnh | Mô tả |
+|---|---|
+| `/start` | Chào mừng & hướng dẫn sử dụng |
+| `/skintype` | Xác định loại da (chọn nút bấm) |
+| `/recommend` | Gợi ý sản phẩm phù hợp với loại da |
+| `/products` | Duyệt sản phẩm theo danh mục |
 | `/search <từ khóa>` | Tìm kiếm sản phẩm |
-| `/order` | Đặt hàng (chọn → số lượng → địa chỉ → xác nhận) |
+| `/xem <tên SP>` | Xem ảnh sản phẩm |
+| `/order` | Đặt hàng (hội thoại nhiều bước) |
 | `/myorder` | Xem lịch sử đơn hàng |
+| `/ask <câu hỏi>` | Tư vấn da bằng Gemini AI |
+| _(chat tự do)_ | AI tư vấn tự nhiên không cần lệnh |
+
+### 🖥️ Admin Dashboard
+- **Thống kê tổng quan**: Tổng users, đơn hàng, sản phẩm, doanh thu
+- **Biểu đồ trực quan**: Bar chart & pie chart theo trạng thái đơn hàng
+- **Quản lý Users**: Xem, tìm kiếm, xóa người dùng
+- **Quản lý Orders**: Lọc theo trạng thái, cập nhật trạng thái real-time
+- **Quản lý Products**: Xem toàn bộ catalog sản phẩm
+- **Dark mode** + Glassmorphism UI
 
 ---
 
-## 🏗️ Kiến trúc hệ thống (Azure)
-
-```
-User (Telegram App)
-       ↓
-Telegram Bot API
-       ↓
-Python Telegram Bot Server
-       ↓
-Azure App Service (PaaS – Cloud hosting)
-       ↓
-Azure Cosmos DB (NoSQL Database)
-```
-
----
-
-## ☁️ Azure Services sử dụng
-
-| Service | Vai trò |
-|---------|---------|
-| **Azure App Service** | Hosting bot Python trên cloud |
-| **Azure Cosmos DB (NoSQL)** | Lưu trữ users, products, orders |
-| **GitHub Actions** | CI/CD tự động deploy lên Azure |
-
----
-
-## 📁 Cấu trúc project
+## 🏗️ Kiến trúc hệ thống
 
 ```
 cosmetic-telegram-bot/
-├── app.py                    # Entry point
-├── bot/
-│   ├── handlers.py           # Xử lý tất cả lệnh
-│   ├── keyboards.py          # InlineKeyboard
-│   └── messages.py           # Message templates
-├── database/
-│   ├── cosmos.py             # Kết nối Azure Cosmos DB
-│   ├── users.py              # CRUD users
-│   ├── products.py           # CRUD products
-│   └── orders.py             # CRUD orders
+├── app.py              # Entry point — Telegram Bot (Polling / Webhook)
+├── dashboard.py        # Admin Dashboard — Flask REST API server
+│
+├── bot/                # Logic bot Telegram
+│   ├── handlers.py     # Xử lý tất cả lệnh (/start, /order, ...)
+│   ├── ai.py           # Tích hợp Gemini AI + caching sản phẩm
+│   ├── keyboards.py    # Inline keyboard buttons
+│   └── messages.py     # Văn bản tin nhắn chuẩn
+│
+├── database/           # Lớp truy cập dữ liệu (Azure Cosmos DB)
+│   ├── cosmos.py       # Kết nối & singleton client
+│   ├── users.py        # CRUD người dùng
+│   ├── orders.py       # CRUD đơn hàng
+│   └── products.py     # Query sản phẩm
+│
+├── templates/
+│   └── dashboard.html  # Giao diện Admin Dashboard (Glassmorphism)
+│
 ├── data/
-│   └── seed_products.py      # Tạo 15 sản phẩm mẫu
-├── .env.example              # Mẫu cấu hình
-├── requirements.txt
-└── README.md
+│   ├── seed_products.py    # Script import 60+ sản phẩm vào Cosmos DB
+│   └── img_folder_map.json # Map tên sản phẩm → file ảnh
+│
+├── img/                # Ảnh sản phẩm (32 ảnh)
+├── Dockerfile          # Container cho deploy Cloud Run / Render
+└── requirements.txt    # Python dependencies
 ```
 
 ---
 
-## ⚙️ Cài đặt và chạy local
+## ☁️ Tech Stack
 
-### 1. Clone repository
-```bash
-git clone https://github.com/anky06-ky/Lumibeauty_bot.git
-cd Lumibeauty_bot
-```
+| Layer | Technology |
+|---|---|
+| **AI** | Google Gemini 2.0 Flash (`google-generativeai`) |
+| **Bot Framework** | python-telegram-bot ≥ 20.0 (async) |
+| **Database** | Azure Cosmos DB (NoSQL) |
+| **Web Dashboard** | Flask + Vanilla HTML/CSS/JS |
+| **Deploy** | Docker → Google Cloud Run / Render.com |
+| **Config** | python-dotenv |
 
-### 2. Tạo môi trường ảo
+---
+
+## ⚙️ Cài đặt & Chạy
+
+### 1. Clone & cài dependencies
+
 ```bash
+git clone https://github.com/<your-org>/cosmetic-telegram-bot.git
+cd cosmetic-telegram-bot
+
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate        # Windows
+# source .venv/bin/activate   # Linux/Mac
+
 pip install -r requirements.txt
 ```
 
-### 3. Tạo Azure Cosmos DB
-1. Vào [portal.azure.com](https://portal.azure.com)
-2. Tạo **Azure Cosmos DB for NoSQL** → chọn **Serverless**
-3. Lấy **URI** và **Primary Key** trong mục **Keys**
+### 2. Cấu hình biến môi trường
 
-### 4. Cấu hình .env
 ```bash
-copy .env.example .env
-```
-Điền thông tin vào `.env`:
-```
-TELEGRAM_TOKEN=your_bot_token
-COSMOS_ENDPOINT=https://your-account.documents.azure.com:443/
-COSMOS_KEY=your_primary_key
-COSMOS_DATABASE=lumibeauty
+cp .env.example .env
 ```
 
-### 5. Tạo dữ liệu mẫu
+Chỉnh sửa file `.env`:
+
+```env
+TELEGRAM_TOKEN=your_telegram_bot_token_here
+COSMOS_ENDPOINT=https://your-account.documents.azure.com:443/
+COSMOS_KEY=your_cosmos_primary_key_here
+COSMOS_DATABASE=lumibeauty
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-2.0-flash
+```
+
+### 3. Seed dữ liệu sản phẩm (chạy 1 lần)
+
 ```bash
 python data/seed_products.py
 ```
 
-### 6. Chạy bot
+### 4. Chạy Bot (Dev - Long Polling)
+
 ```bash
 python app.py
 ```
 
----
+### 5. Chạy Admin Dashboard
 
-## ☁️ Triển khai lên Azure App Service
-
-1. Tạo **App Service** (Python 3.11, Linux, Free F1 tier)
-2. **Configuration → Application Settings** → thêm các biến trong `.env`
-3. **Deployment Center** → kết nối GitHub → bật CI/CD tự động
-4. Bot sẽ tự deploy mỗi khi push code lên GitHub ✅
+```bash
+python dashboard.py
+# Mở http://localhost:5050
+```
 
 ---
 
-## 🗄️ Azure Cosmos DB – Database Design
+## 🐳 Deploy với Docker
 
-| Container | Partition Key | Fields |
-|-----------|--------------|--------|
-| `users` | `/telegram_id` | telegram_id, username, skintype |
-| `products` | `/id` | id, name, price, skintype[], description |
-| `orders` | `/user_id` | id, user_id, product_name, quantity, address, status, created_at |
+```bash
+# Build image
+docker build -t lumi-beauty-bot .
+
+# Chạy với env file
+docker run --env-file .env -p 8443:8443 lumi-beauty-bot
+```
+
+Để deploy lên **Google Cloud Run**, đặt biến môi trường:
+```env
+ENVIRONMENT=production
+WEBHOOK_URL=https://your-service-url.run.app
+PORT=8080
+```
 
 ---
 
-## 🛠️ Tech Stack
+## 🔑 Lấy API Keys
 
-| Thành phần | Công nghệ |
-|-----------|-----------|
-| Ngôn ngữ | Python 3.11 |
-| Bot Framework | python-telegram-bot v20+ |
-| Database | Azure Cosmos DB for NoSQL |
-| Cloud Hosting | Azure App Service |
-| CI/CD | GitHub → Azure Deployment Center |
-| Version Control | GitHub |
+| Key | Nơi lấy |
+|---|---|
+| `TELEGRAM_TOKEN` | [@BotFather](https://t.me/BotFather) trên Telegram |
+| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/apikey) |
+| `COSMOS_ENDPOINT` & `COSMOS_KEY` | Azure Portal → Cosmos DB → Keys |
+
+---
+
+## 📊 Dashboard Architecture
+
+```
+Browser (dashboard.html)
+    │
+    │  fetch('/api/stats')
+    │  fetch('/api/users')
+    │  fetch('/api/orders')
+    │  fetch('/api/products')
+    ▼
+Flask (dashboard.py :5050)
+    │
+    │  import database.users / orders / products
+    ▼
+Database Layer (database/)
+    │
+    │  azure-cosmos SDK
+    ▼
+Azure Cosmos DB (cloud)
+  ├── Container: users     (partition: /telegram_id)
+  ├── Container: orders    (partition: /user_id)
+  └── Container: products  (partition: /id)
+```
+
+---
+
+## 📄 License
+
+MIT License — Đồ án học tập, không sử dụng cho mục đích thương mại.
