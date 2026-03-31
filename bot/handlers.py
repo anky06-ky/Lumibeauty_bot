@@ -52,7 +52,8 @@ CHOOSE_PRODUCT, ENTER_QUANTITY, ENTER_NAME, ENTER_ADDRESS, CONFIRM_ORDER = range
 # ──────────────────────────────────────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    users.save_user(user.id, user.username)
+    full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+    users.save_user(user.id, user.username, full_name)
     await update.message.reply_text(WELCOME_MSG, parse_mode="Markdown")
 
 

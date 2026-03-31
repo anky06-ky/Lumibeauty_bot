@@ -10,14 +10,28 @@ def get_user(telegram_id: int) -> dict | None:
     except Exception:
         return None
 
-def save_user(telegram_id: int, username: str):
-    if not get_user(telegram_id):
+def save_user(telegram_id: int, username: str, full_name: str = ""):
+    """Tạo mới user nếu chưa tồn tại, hoặc cập nhật full_name/username."""
+    existing = get_user(telegram_id)
+    if not existing:
         _c().create_item(body={
             "id": str(telegram_id),
             "telegram_id": str(telegram_id),
-            "username": username or "unknown",
+            "username": username or "",
+            "full_name": full_name or username or "unknown",
             "skintype": None
         })
+    else:
+        # Cập nhật tên mỗi lần /start (tên có thể thay đổi)
+        changed = False
+        if full_name and existing.get("full_name") != full_name:
+            existing["full_name"] = full_name
+            changed = True
+        if username and existing.get("username") != username:
+            existing["username"] = username
+            changed = True
+        if changed:
+            _c().replace_item(item=str(telegram_id), body=existing)
 
 def update_skintype(telegram_id: int, skintype: str):
     user = get_user(telegram_id)

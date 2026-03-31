@@ -3,3 +3,4 @@ python-dotenv
 azure-cosmos
 google-generativeai
 flask
+requests

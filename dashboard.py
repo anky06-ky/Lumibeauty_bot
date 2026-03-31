@@ -5,12 +5,56 @@ Chạy: python dashboard.py  →  http://localhost:5050
 """
 
 import os
+import requests as http_req
 from flask import Flask, render_template, jsonify, request
 from dotenv import load_dotenv
 
 load_dotenv()
 
 from database import users, orders, products
+
+
+# ── Telegram Notification ─────────────────────────────────
+def _notify_telegram(user_id: str, order_id: str, product_name: str, new_status: str):
+    """Gửi tin nhắn Telegram cho khách khi admin cập nhật trạng thái đơn hàng."""
+    token = os.getenv("TELEGRAM_TOKEN")
+    if not token or not user_id:
+        return
+
+    short_id = (order_id or "")[:8]
+    STATUS_MESSAGES = {
+        "Đang xử lý": (
+            f"🕐 *Cập nhật đơn hàng của bạn*\n\n"
+            f"Đơn hàng *{product_name}* đang được xử lý.\n"
+            f"Chúng tôi sẽ liên hệ khi hàng sẵn sàng giao nhé! 📦\n"
+            f"_Mã đơn: {short_id}..._"
+        ),
+        "Đã giao": (
+            f"🎉 *Đơn hàng đã giao thành công!*\n\n"
+            f"Sản phẩm *{product_name}* đã được giao đến bạn rồi nhé!\n"
+            f"Cảm ơn bạn đã mua hàng tại *Lumi Beauty* 🌸\n"
+            f"_Mã đơn: {short_id}..._"
+        ),
+        "Đã hủy": (
+            f"❌ *Đơn hàng đã bị hủy*\n\n"
+            f"Đơn hàng *{product_name}* của bạn đã bị hủy.\n"
+            f"Nếu có thắc mắc, vui lòng nhắn tin cho shop nhé! 🌸\n"
+            f"_Mã đơn: {short_id}..._"
+        ),
+    }
+    text = STATUS_MESSAGES.get(
+        new_status,
+        f"📦 Đơn hàng *{product_name}* vừa được cập nhật: *{new_status}*"
+    )
+    try:
+        http_req.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={"chat_id": user_id, "text": text, "parse_mode": "Markdown"},
+            timeout=6
+        )
+        print(f"[Dashboard] Đã gửi notify cho user {user_id}: {new_status}")
+    except Exception as e:
+        print(f"[Dashboard] Lỗi gửi Telegram notify: {e}")
 
 app = Flask(__name__)
 
@@ -53,15 +97,21 @@ def api_users():
         all_users = [
             u for u in all_users
             if search in (u.get("username") or "").lower()
+            or search in (u.get("full_name") or "").lower()
             or search in (u.get("telegram_id") or "").lower()
         ]
-    # Chỉ trả về các trường cần thiết
     clean = []
     for u in all_users:
+        username = u.get("username") or ""
+        full_name = u.get("full_name") or ""
+        # Hiển thị tên: ưu tiên full_name, fallback @username
+        display = full_name if full_name and full_name != "unknown" else (f"@{username}" if username else "unknown")
         clean.append({
             "id": u.get("id"),
             "telegram_id": u.get("telegram_id"),
-            "username": u.get("username", "unknown"),
+            "username": username,
+            "full_name": full_name,
+            "display_name": display,
             "skintype": u.get("skintype"),
         })
     return jsonify(clean)
@@ -101,9 +151,12 @@ def api_update_order(order_id):
     data = request.get_json()
     new_status = data.get("status")
     user_id = data.get("user_id")
+    product_name = data.get("product_name", "sản phẩm")
     if not new_status or not user_id:
         return jsonify({"success": False, "error": "Missing status or user_id"}), 400
     ok = orders.update_order_status(order_id, user_id, new_status)
+    if ok:
+        _notify_telegram(user_id, order_id, product_name, new_status)
     return jsonify({"success": ok})
 
 
