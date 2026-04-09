@@ -52,8 +52,9 @@ CHOOSE_PRODUCT, ENTER_QUANTITY, ENTER_NAME, ENTER_ADDRESS, CONFIRM_ORDER = range
 # ──────────────────────────────────────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
-    users.save_user(user.id, user.username, full_name)
+    # Lấy full_name của user trên Telegram (vd: "Nguyễn Văn A"), thay vì username (có thể bị null)
+    display_name = user.full_name or user.username or "Khách hàng"
+    users.save_user(user.id, display_name)
     await update.message.reply_text(WELCOME_MSG, parse_mode="Markdown")
 
 

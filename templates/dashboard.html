@@ -772,21 +772,20 @@
                 <h2 class="section-title">👥 Quản lý Người dùng</h2>
                 <div class="glass-card">
                     <div class="table-toolbar">
-                        <input type="text" class="search-input" id="search-users" placeholder="Tìm theo tên, username hoặc ID...">
+                        <input type="text" class="search-input" id="search-users" placeholder="Tìm theo username hoặc ID...">
                         <button class="btn-primary" onclick="loadUsers()">🔄 Tải lại</button>
                     </div>
                     <table>
                         <thead>
                             <tr>
                                 <th>Telegram ID</th>
-                                <th>Tên khách hàng</th>
                                 <th>Username</th>
                                 <th>Loại da</th>
                                 <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="table-users">
-                            <tr><td colspan="5" class="empty-state"><span class="empty-icon">⏳</span>Đang tải...</td></tr>
+                            <tr><td colspan="4" class="empty-state"><span class="empty-icon">⏳</span>Đang tải...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1026,16 +1025,13 @@
             document.getElementById('sidebar-badge-users').textContent = users.length;
             const tbody = document.getElementById('table-users');
             if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><span class="empty-icon">😶</span>Không có người dùng nào</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state"><span class="empty-icon">😶</span>Không có người dùng nào</td></tr>';
                 return;
             }
             tbody.innerHTML = users.map(u => `
                 <tr>
                     <td><span class="table-id">${u.telegram_id}</span></td>
-                    <td>
-                        <strong>${esc(u.display_name || u.full_name || 'unknown')}</strong>
-                    </td>
-                    <td style="color:var(--text-light);font-size:12px">${u.username ? '@' + esc(u.username) : '<span style="color:var(--text-light)">Chưa có</span>'}</td>
+                    <td><strong>${esc(u.username || 'Khách hàng')}</strong></td>
                     <td>${u.skintype ? `<span class="activity-badge badge-skin">${esc(u.skintype)}</span>` : '<span style="color:var(--text-light)">Chưa chọn</span>'}</td>
                     <td><button class="btn-delete" onclick="deleteUser('${u.telegram_id}')">🗑️ Xóa</button></td>
                 </tr>

@@ -97,21 +97,15 @@ def api_users():
         all_users = [
             u for u in all_users
             if search in (u.get("username") or "").lower()
-            or search in (u.get("full_name") or "").lower()
             or search in (u.get("telegram_id") or "").lower()
         ]
+    # Chỉ trả về các trường cần thiết
     clean = []
     for u in all_users:
-        username = u.get("username") or ""
-        full_name = u.get("full_name") or ""
-        # Hiển thị tên: ưu tiên full_name, fallback @username
-        display = full_name if full_name and full_name != "unknown" else (f"@{username}" if username else "unknown")
         clean.append({
             "id": u.get("id"),
             "telegram_id": u.get("telegram_id"),
-            "username": username,
-            "full_name": full_name,
-            "display_name": display,
+            "username": u.get("username", "unknown"),
             "skintype": u.get("skintype"),
         })
     return jsonify(clean)
