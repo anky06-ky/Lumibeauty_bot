@@ -1,6 +1,6 @@
 python-telegram-bot[webhooks]>=20.0
 python-dotenv
 pymongo[srv]
-google-generativeai
+google-genai
 flask
 requests

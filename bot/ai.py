@@ -1,5 +1,5 @@
 import os
-import google.generativeai as genai
+from google import genai
 from database.products import get_all_products
 from bot.messages import AI_ERROR_BUSY_MSG, AI_ERROR_NO_KEY_MSG
 from dotenv import load_dotenv
@@ -9,8 +9,13 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or "").strip()
 
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None and GEMINI_API_KEY:
+        _client = genai.Client(api_key=GEMINI_API_KEY)
+    return _client
 
 # Thứ tự thử model: env trước, sau đó các bản flash thường gặp (Google đổi tên model theo thời gian).
 _MODEL_FALLBACKS = [
@@ -24,7 +29,7 @@ def _product_list_for_prompt() -> str:
     try:
         products = get_all_products()
     except Exception as e:
-        print(f"[AI] Không tải danh sách sản phẩm từ Cosmos: {e}")
+        print(f"[AI] Khong tai duoc danh sach san pham: {e}")
         products = []
     if not products:
         return "(Chưa tải được danh sách từ CSDL — hãy tư vấn chung và gợi ý khách dùng /products, /search.)"
@@ -36,6 +41,10 @@ def _product_list_for_prompt() -> str:
 
 def get_ai_response(user_query: str) -> str:
     if not GEMINI_API_KEY:
+        return AI_ERROR_NO_KEY_MSG
+
+    client = _get_client()
+    if not client:
         return AI_ERROR_NO_KEY_MSG
 
     product_list_str = _product_list_for_prompt()
@@ -63,21 +72,23 @@ Câu hỏi/Tin nhắn của khách hàng: {user_query}
             continue
         seen.add(name)
         try:
-            model = genai.GenerativeModel(name)
-            response = model.generate_content(system_prompt)
+            response = client.models.generate_content(
+                model=name,
+                contents=system_prompt,
+            )
             try:
                 out = (response.text or "").strip()
             except (ValueError, AttributeError):
                 out = ""
             if not out:
-                last_err = RuntimeError(f"Model {name} trả về nội dung rỗng (có thể bị chặn bởi safety).")
+                last_err = RuntimeError(f"Model {name} tra ve noi dung rong (co the bi chan boi safety).")
                 print(f"[AI] {last_err}")
                 continue
             return out
         except Exception as e:
             last_err = e
-            print(f"[AI] Model '{name}' lỗi: {type(e).__name__}: {e}")
+            print(f"[AI] Model '{name}' loi: {type(e).__name__}: {e}")
 
     if last_err:
-        print(f"[AI] Đã thử hết model, lỗi cuối: {last_err}")
+        print(f"[AI] Da thu het model, loi cuoi: {last_err}")
     return AI_ERROR_BUSY_MSG
