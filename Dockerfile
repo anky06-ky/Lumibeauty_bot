@@ -18,9 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # ── Bước 5: Khai báo port ─────────────────────────────────
-# Cloud Run inject PORT=8080, Render inject PORT=10000, v.v.
-# EXPOSE chỉ để tài liệu hóa, không thực sự mở port
-EXPOSE 8080
+# Render inject PORT=10000 (mặc định), EXPOSE chỉ để tài liệu hóa
+EXPOSE 10000
 
 # ── Bước 6: Lệnh khởi chạy ────────────────────────────────
 # Mặc định: chạy bot (polling hoặc webhook tùy biến ENVIRONMENT)
