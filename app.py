@@ -27,12 +27,8 @@ def main():
     app = (
         ApplicationBuilder()
         .token(TOKEN)
-        .request(custom_request)          # Request cho các API call thông thường
-        .get_updates_request(custom_request)  # Request cho getUpdates (polling)
-        .connect_timeout(30.0)
-        .read_timeout(30.0)
-        .write_timeout(30.0)
-        .pool_timeout(30.0)
+        .request(custom_request)              # Request cho các API call thông thường
+        .get_updates_request(custom_request)   # Request cho getUpdates (polling)
         .build()
     )
 
