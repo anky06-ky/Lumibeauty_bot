@@ -1,10 +1,10 @@
 """
-Script tạo dữ liệu mẫu sản phẩm vào Azure Cosmos DB.
+Script tạo dữ liệu mẫu sản phẩm vào MongoDB Atlas.
 Chạy 1 lần: python data/seed_products.py
 """
 import sys, os, uuid
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database.cosmos import get_container
+from database.mongo import get_collection
 
 PRODUCTS = [
     {"id": str(uuid.uuid4()), "name": "Sữa rửa mặt kiểm soát dầu CeraVe",       "price": 280000,  "skintype": ["da dầu","da hỗn hợp"],              "description": "Làm sạch sâu, kiểm soát dầu nhờn, không gây khô da.", "image": "srmCerave.jpg"},
@@ -81,10 +81,10 @@ for idx, prod in enumerate(PRODUCTS, 1):
     )
 
 def seed():
-    container = get_container("products", "/id")
-    for p in PRODUCTS:
-        container.create_item(body=p)
-    print(f"✅ Đã thêm {len(PRODUCTS)} sản phẩm vào Azure Cosmos DB!")
+    col = get_collection("products")
+    col.delete_many({})  # Xóa dữ liệu cũ
+    col.insert_many(PRODUCTS)
+    print(f"[OK] Da them {len(PRODUCTS)} san pham vao MongoDB Atlas!")
 
 if __name__ == "__main__":
     seed()

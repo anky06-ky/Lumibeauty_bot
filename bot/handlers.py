@@ -317,24 +317,21 @@ async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Lấy kết quả đầu tiên tốt nhất để show ảnh bự
     p = results[0]
-    
+
     # Ưu tiên lấy ảnh từ thuộc tính 'image' trỏ vào thư mục img/ của team
     img_filename = p.get('image')
     img_src = None
     if img_filename:
-        # Construct the path relative to the current file's directory
         current_dir = os.path.dirname(__file__)
-        # Assuming 'img' directory is at the same level as 'bot' directory
-        # So, go up one level from 'handlers.py' (which is in 'bot') to the project root, then into 'img'
         project_root = os.path.dirname(current_dir)
         possible_path = os.path.join(project_root, "img", img_filename)
         if os.path.exists(possible_path):
             img_src = possible_path
 
-    # Nếu không có hoặc file bị thiếu, fallback về bộ máy mockups cũ
+    # Nếu không có hoặc file bị thiếu, fallback về hàm get_product_image
     if not img_src:
-        img_src = get_mock_image(p['name'])
-    
+        img_src = get_product_image(p)
+
     caption = (
         f"📸 *Ảnh minh họa sản phẩm:*\n"
         f"*{p['name']}*\n"
@@ -343,8 +340,17 @@ async def view_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📝 {p.get('description', '')}\n\n"
         f"👉 _Dùng lệnh /order để chốt đơn ngay nhé!_"
     )
-    
-    await update.message.reply_photo(photo=img_url, caption=caption, parse_mode="Markdown")
+
+    try:
+        if img_src.startswith("http"):
+            await update.message.reply_photo(photo=img_src, caption=caption, parse_mode="Markdown")
+        else:
+            with open(img_src, "rb") as photo:
+                await update.message.reply_photo(photo=photo, caption=caption, parse_mode="Markdown")
+    except TelegramError:
+        await update.message.reply_text(f"Không gửi được ảnh.\n\n{caption}", parse_mode="Markdown")
+    except OSError:
+        await update.message.reply_text(f"Không mở được file ảnh: {img_src}\n\n{caption}", parse_mode="Markdown")
 
 
 

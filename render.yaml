@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: lumi-beauty-bot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8080
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: MONGO_URI
+        sync: false          # mongodb+srv://... từ MongoDB Atlas
+      - key: MONGO_DATABASE
+        value: lumibeauty
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+      - key: WEBHOOK_URL
+        sync: false          # Điền sau khi có URL từ Render

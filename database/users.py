@@ -1,44 +1,47 @@
 import uuid
-from database.cosmos import get_container
+from database.mongo import get_collection
+
 
 def _c():
-    return get_container("users", "/telegram_id")
+    return get_collection("users")
+
 
 def get_user(telegram_id: int) -> dict | None:
-    try:
-        return _c().read_item(item=str(telegram_id), partition_key=str(telegram_id))
-    except Exception:
-        return None
+    return _c().find_one({"telegram_id": str(telegram_id)}, {"_id": 0})
+
 
 def save_user(telegram_id: int, username: str):
     user = get_user(telegram_id)
     if not user:
-        _c().create_item(body={
+        _c().insert_one({
             "id": str(telegram_id),
             "telegram_id": str(telegram_id),
             "username": username or "Khách hàng",
             "skintype": None
         })
     elif user.get("username") in (None, "unknown", "Khách hàng") and username:
-        user["username"] = username
-        _c().replace_item(item=str(telegram_id), body=user)
+        _c().update_one(
+            {"telegram_id": str(telegram_id)},
+            {"$set": {"username": username}}
+        )
+
 
 def update_skintype(telegram_id: int, skintype: str):
-    user = get_user(telegram_id)
-    if user:
-        user["skintype"] = skintype
-        _c().replace_item(item=str(telegram_id), body=user)
+    _c().update_one(
+        {"telegram_id": str(telegram_id)},
+        {"$set": {"skintype": skintype}}
+    )
+
 
 def get_skintype(telegram_id: int) -> str | None:
     user = get_user(telegram_id)
     return user.get("skintype") if user else None
 
+
 def get_all_users() -> list:
-    return list(_c().read_all_items())
+    return list(_c().find({}, {"_id": 0}))
+
 
 def delete_user(telegram_id: int):
-    try:
-        _c().delete_item(item=str(telegram_id), partition_key=str(telegram_id))
-        return True
-    except Exception:
-        return False
+    result = _c().delete_one({"telegram_id": str(telegram_id)})
+    return result.deleted_count > 0

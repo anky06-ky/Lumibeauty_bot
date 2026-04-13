@@ -40,15 +40,16 @@ def main():
     ENVIRONMENT = os.getenv("ENVIRONMENT", "local")
 
     if ENVIRONMENT == "production":
-        # Chạy Webhook trên Cloud (Render, Google Cloud Run)
-        PORT = int(os.environ.get('PORT', '8443'))
-        WEBHOOK_URL = os.environ.get('WEBHOOK_URL') # Ví dụ: https://my-bot.onrender.com
-        
+        # Chạy Webhook trên Cloud (Render, Railway, Fly.io, ...)
+        PORT = int(os.environ.get('PORT', '8080'))
+        WEBHOOK_URL = os.environ.get('WEBHOOK_URL')  # Ví dụ: https://lumi-beauty-bot.onrender.com
+
         print(f"[Lumi Beauty Bot] is running in Webhook mode on port {PORT}...")
+        print(f"[Lumi Beauty Bot] Webhook URL: {WEBHOOK_URL}")
         app.run_webhook(
             listen="0.0.0.0",
             port=PORT,
-            webhook_url=f"{WEBHOOK_URL}"
+            webhook_url=WEBHOOK_URL
         )
     else:
         # Chạy Long Polling khi DEV ở Local

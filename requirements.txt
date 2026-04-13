@@ -1,6 +1,6 @@
-python-telegram-bot>=20.0
+python-telegram-bot[webhooks]>=20.0
 python-dotenv
-azure-cosmos
+pymongo[srv]
 google-generativeai
 flask
 requests
