@@ -30,6 +30,8 @@ diff.txt
 
 # ── Old / Duplicate Source Code ────────────────────────────
 Lumibeauty_bot-main/
+database/cosmos.py
+check_db.py
 
 # ── IDE & Editor ───────────────────────────────────────────
 .vscode/
